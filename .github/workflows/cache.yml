@@ -55,5 +55,5 @@ jobs:
         uses: tailscale/github-action@v1
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-      - run: sleep 5 && gh run download --repo jakecoffman/actions --name my-ip-${{ github.run_id }}
+      - run: sleep 10 && gh run download --repo jakecoffman/actions --name my-ip-${{ github.run_id }}
       - run: cat my-ip-${{ github.run_id }}
