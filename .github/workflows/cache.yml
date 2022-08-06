@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Blah
+name: Cache
 
 # Controls when the workflow will run
 on:
@@ -33,11 +33,12 @@ jobs:
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-      - run: tailscale netcheck
+      - run: tailscale ip -4 >> my_ip
 
-      # Runs a single command using the runners shell
-      - name: Serve
-        run: go run server/server.go
+      - uses: actions/upload-artifact@v3
+        with:
+          name: my-ip-${{ github.run_id }}
+          path: my-ip
   client:
     runs-on: ubuntu-latest
 
@@ -51,5 +52,5 @@ jobs:
         uses: tailscale/github-action@v1
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-      - name: Client
-        run: go run client/client.go
+      - run: sleep 5 && gh run download --repo jakecoffman/actions --name my-ip-${{ github.run_id }}
+      - run: cat my-ip-${{ github.run_id }}
