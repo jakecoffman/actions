@@ -33,8 +33,6 @@ jobs:
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-      - run: tailscale netcheck
-
       # Runs a single command using the runners shell
       - name: Serve
         run: go run server/server.go
