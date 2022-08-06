@@ -15,7 +15,7 @@ import (
 
 func main() {
 	var err error
-	for i := 0; i < 15; i++ {
+	for i := 0; i < 60*5; i++ {
 		err = call()
 		if err == nil {
 			return

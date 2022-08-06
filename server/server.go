@@ -10,7 +10,7 @@ import (
 
 func main() {
 	go func() {
-		time.Sleep(time.Minute)
+		time.Sleep(5 * time.Minute)
 		log.Fatalln("Times up!")
 	}()
 
