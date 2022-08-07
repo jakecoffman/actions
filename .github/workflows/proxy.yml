@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   proxy:
     runs-on: ubuntu-latest
