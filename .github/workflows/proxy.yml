@@ -1,0 +1,25 @@
+name: Proxy
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  proxy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      # Kick off the updater telling it where to find the proxy
+      - run: |
+          export ADDR=`ifconfig eth0 | awk '/inet /{print $2}' | cut -f2 -d':'`
+          gh workflow run updater.yml -f ip=$IP
+
+      # Run the proxy
+      - name: Serve
+        run: go run server/server.go

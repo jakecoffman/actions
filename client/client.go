@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -14,9 +15,24 @@ import (
 )
 
 func main() {
+	if ip := os.Getenv("PROXY_ADDR"); ip != "" {
+		url := fmt.Sprintf("http://%v:8000", ip)
+		buf := bytes.NewBufferString("Hello")
+		resp, err := http.Post(url, "text/html", buf)
+		if err != nil {
+			log.Fatal(err)
+		}
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(string(data))
+		return
+	}
+
 	var err error
 	for i := 0; i < 60*5; i++ {
-		err = call()
+		err = tailscaleCall()
 		if err == nil {
 			return
 		}
@@ -28,7 +44,7 @@ func main() {
 	}
 }
 
-func call() error {
+func tailscaleCall() error {
 	ip := GetOtherIP()
 	log.Println("Other IP:", ip)
 	url := fmt.Sprintf("http://%v:8000", ip)
