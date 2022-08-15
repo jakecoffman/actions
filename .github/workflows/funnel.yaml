@@ -28,4 +28,4 @@ jobs:
     name: Result
     needs: first
     steps:
-      - run: echo ${{ toJSON(needs) }}
+      - run: echo "${{ toJSON(needs) }}"
