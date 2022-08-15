@@ -1,0 +1,31 @@
+name: Funnel
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  first:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - a
+          - b
+    steps:
+      - name: Run ${{ matrix.suite }}
+        run: |
+          if [ "${{ matrix.suite }}" = "a" ]; then
+              exit 0
+          else
+              exit 1
+          fi
+  result:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Result
+    needs: first
+    steps:
+      - run: ${{ contains(join(needs.*.result, ',')) }}
