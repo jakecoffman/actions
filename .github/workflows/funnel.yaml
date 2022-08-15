@@ -29,3 +29,9 @@ jobs:
     needs: first
     steps:
       - run: echo "${{ toJSON(needs) }}"
+      - run: |
+          if [ "${{ needs.first.result }}" = "success" ]; then
+              exit 0
+          else
+              exit 1
+          fi
