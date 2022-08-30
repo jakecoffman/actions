@@ -10,6 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: echo "::warning::Missing semicolon"
-      - run: echo "::error title=error testing::Does not compute"
-      - run: pigz
+      - run: echo "${{ github.sha }}"
