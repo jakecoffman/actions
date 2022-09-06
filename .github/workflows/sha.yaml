@@ -1,4 +1,4 @@
-name: Blah
+name: Sha
 on:
   push:
     branches: [ "main" ]
