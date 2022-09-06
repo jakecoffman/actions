@@ -6,13 +6,13 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 jobs:
-  server:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Docker build
-        run: docker build -t funtime .
+        run: docker build -t ghcr.io/jakecoffman/funtime .
       - name: Push
         run: docker push ghcr.io/jakecoffman/funtime
