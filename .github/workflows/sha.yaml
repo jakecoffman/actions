@@ -11,3 +11,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: echo "${{ github.sha }}"
+
+      - run: ${{ toJSON(github.event) }}
