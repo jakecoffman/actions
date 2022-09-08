@@ -33,7 +33,6 @@ jobs:
       - name: Checkout the fork
         run: |
           gh pr checkout ${{ github.event.inputs.pr }} --branch docker-branch-release-workflow
-          git checkout main
-          git merge docker-branch-release-workflow
+          git main
           SHA=git rev-parse HEAD
           echo "SHA IS $SHA"
