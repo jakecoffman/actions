@@ -41,5 +41,5 @@ jobs:
           PICKME=$(git rev-parse HEAD)
           git checkout main
           git cherry-pick $PICKME
-          SHA=git rev-parse HEAD
+          SHA=$(git rev-parse HEAD)
           echo "SHA IS $SHA"
