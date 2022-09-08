@@ -1,0 +1,38 @@
+name: Push docker fork images
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        required: true
+        type: string
+        description: PR number
+
+jobs:
+  push-fork-image:
+    name: Build and push fork image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ github.sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+        # The PR must be approved. This is mostly to ensure you've typed the correct PR.
+      - name: Check if pull request is approved
+        run: |
+          DECISION=$(gh pr view ${{ github.event.inputs.pr }} --json reviewDecision -t {{.reviewDecision}})
+          echo "Review decision is: $DECISION"
+          [[ $DECISION == "APPROVED" ]] || exit 1
+
+      - name: Checkout the fork
+        run: |
+          gh pr checkout ${{ github.event.inputs.pr }} --branch docker-branch-release-workflow
+          git checkout main
+          git merge docker-branch-release-workflow
+          SHA=git rev-parse HEAD
+          echo "SHA IS $SHA"
