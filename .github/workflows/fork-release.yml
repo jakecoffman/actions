@@ -36,6 +36,7 @@ jobs:
           git config --global user.name "Your Name"
           gh pr checkout ${{ github.event.inputs.pr }} --branch docker-branch-release-workflow
           git reset main
+          git add .
           git commit -m sqashed
           PICKME=$(git rev-parse HEAD)
           git checkout main
