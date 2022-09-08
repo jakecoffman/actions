@@ -25,6 +25,7 @@ jobs:
         # The PR must be approved. This is mostly to ensure you've typed the correct PR.
       - name: Check if pull request is approved
         run: |
+          gh pr view ${{ github.event.inputs.pr }} --json reviewDecision -t {{.reviewDecision}}
           DECISION=$(gh pr view ${{ github.event.inputs.pr }} --json reviewDecision -t {{.reviewDecision}})
           echo "Review decision is: $DECISION"
           [[ $DECISION == "APPROVED" ]] || exit 1
