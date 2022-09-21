@@ -25,14 +25,21 @@ jobs:
         # The PR must be approved. This is mostly to ensure you've typed the correct PR.
       - name: Check if pull request is approved
         run: |
+          gh pr view ${{ github.event.inputs.pr }} --json reviewDecision -t {{.reviewDecision}}
           DECISION=$(gh pr view ${{ github.event.inputs.pr }} --json reviewDecision -t {{.reviewDecision}})
           echo "Review decision is: $DECISION"
           [[ $DECISION == "APPROVED" ]] || exit 1
 
       - name: Checkout the fork
         run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
           gh pr checkout ${{ github.event.inputs.pr }} --branch docker-branch-release-workflow
+          git reset main
+          git add .
+          git commit -m sqashed
+          PICKME=$(git rev-parse HEAD)
           git checkout main
-          git merge docker-branch-release-workflow
-          SHA=git rev-parse HEAD
+          git cherry-pick $PICKME
+          SHA=$(git rev-parse HEAD)
           echo "SHA IS $SHA"
