@@ -9,5 +9,11 @@ jobs:
   isfork:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
+      - name: Run if fork
+        if: github.event.pull_request.head.repo.fork
+        run: echo FORK
+      - name: Run if not fork
+        if: github.event.pull_request.head.repo.fork != true
+        run: echo "NOT FORK"
       - run: echo ${{github.event.pull_request.head.repo.fork}}
