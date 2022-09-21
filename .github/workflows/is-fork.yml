@@ -9,5 +9,5 @@ jobs:
   isfork:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
       - run: echo ${{github.event.pull_request.head.repo.fork}}
