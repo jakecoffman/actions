@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: echo "${{ toJSON(github.event.pull_request.head.repo.fork) }}"
+      - run: echo ${{github.event.pull_request.head.repo.fork}}
