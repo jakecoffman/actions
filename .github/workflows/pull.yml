@@ -1,0 +1,11 @@
+name: Pull
+on:
+  workflow_dispatch:
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull updater
+        run: time docker pull ghcr.io/dependabot/dependabot-updater
+      - name: Pull proxy
+        run: time docker pull ghcr.io/github/dependabot-update-job-proxy/dependabot-update-job-proxy
