@@ -11,4 +11,4 @@ jobs:
           sudo ufw default deny outgoing
           sudo ufw allow ssh
           sudo ufw enable
-          curl https://example.com
+          curl --connect-timeout 5 https://example.com
