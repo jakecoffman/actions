@@ -1,0 +1,14 @@
+name: UFW
+on:
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: UFW
+        run: |
+          curl https://example.com
+          sudo ufw default deny outgoing
+          sudo ufw allow ssh
+          sudo ufw enable
+          curl https://example.com
