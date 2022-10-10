@@ -20,7 +20,7 @@ jobs:
       TAG: ${{ github.sha }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
 
         # The PR must be approved. This is mostly to ensure you've typed the correct PR.
       - name: Check if pull request is approved
