@@ -6,9 +6,7 @@ on:
       - completed
     workflows:
        - CI
-permissions:
-  pull-requests: write
-  contents: write
+permissions: write-all
 jobs:
   merge-me:
     name: Merge me!
