@@ -4,7 +4,8 @@ on:
   workflow_run:
     types:
       - completed
-
+    workflows:
+       - CI
 jobs:
   merge-me:
     name: Merge me!
