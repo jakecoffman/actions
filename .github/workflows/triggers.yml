@@ -2,8 +2,6 @@ name: Triggers
 
 on:
   pull_request:
-    - branches:
-        - main
 
 jobs:
   ci:
