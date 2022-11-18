@@ -1,8 +1,10 @@
-name: CI
+name: Triggers
 
 on:
   pull_request:
-  
+    types: [synchronize]
+    branches:
+      - main
 jobs:
   ci:
     name: CI
@@ -10,3 +12,4 @@ jobs:
     steps:
       - name: Test
         run: echo "SUCCESS"
+
