@@ -2,7 +2,9 @@ name: Triggers
 
 on:
   pull_request:
-    types: [edited]
+    types: [synchronize]
+    branches:
+      - main
 jobs:
   ci:
     name: CI
