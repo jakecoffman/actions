@@ -1,7 +1,9 @@
-name: CI
+name: Triggers
 
 on:
   pull_request:
+    - type:
+        - edited
     - branches:
         - main
   pull_request_review:
