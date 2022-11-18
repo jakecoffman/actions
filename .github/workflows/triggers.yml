@@ -2,7 +2,7 @@ name: Triggers
 
 on:
   pull_request:
-
+    types: [synchronize]
 jobs:
   ci:
     name: CI
