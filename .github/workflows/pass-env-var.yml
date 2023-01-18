@@ -4,8 +4,11 @@ on:
 jobs:
   one:
     runs-on: ubuntu-latest
+    outputs:
+      FOO: ${{ steps.step1.outputs.FOO }}
     steps:
-      - name: Set env var
+      - id: step1
+        name: Set env var
         run: echo "FOO=bar" >> $GITHUB_OUTPUT
   two:
     runs-on: ubuntu-latest
