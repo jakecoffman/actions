@@ -6,10 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set env var
-        run: echo "FOO=bar" >> $GITHUB_ENV
+        run: echo "FOO=bar" >> $GITHUB_OUTPUT
   two:
     runs-on: ubuntu-latest
     needs: one
     steps:
       - name: Get Env var
-        run: echo "FOO is ${{ needs.one.env.FOO }}"
+        run: echo "FOO is ${{ needs.one.outputs.FOO }}"
