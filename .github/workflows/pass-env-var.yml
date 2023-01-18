@@ -1,0 +1,15 @@
+name: Pass Env Var
+on:
+  workflow_dispatch:
+jobs:
+  one:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set env var
+        run: echo "FOO=bar" >> $GITHUB_ENV
+  two:
+    runs-on: ubuntu-latest
+    needs: one
+    steps:
+      - name: Get Env var
+        run: echo ${{ needs.one.env.FOO }}
