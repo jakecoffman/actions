@@ -19,3 +19,4 @@ jobs:
       - name: Output workflow names
         run: |
           echo "Workflows: ${{ needs.first.outputs.suites }}"
+          echo "fromJSON: ${{ fromJSON(needs.first.outputs.suites) }}"
