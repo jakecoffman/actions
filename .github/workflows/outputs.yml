@@ -10,13 +10,14 @@ jobs:
     steps:
       - name: Output workflow names
         run: |
-          echo "Workflows: ${{ toJSON(needs.first.outputs) }}"
+          echo "Workflows: ${{ needs.first.outputs.workflows }}"
+          echo "fromJSON: ${{ fromJSON(needs.first.outputs.workflows) }}"
   third:
     runs-on: ubuntu-latest
     needs: first
     strategy:
         matrix:
-            suite: ${{ fromJSON(needs.first.outputs.suites) }}
+            suite: ${{ fromJSON(needs.first.outputs.workflows) }}
     steps:
       - name: Run ${{ matrix.suite }}
         run: echo "Running ${{ matrix.suite }}"

@@ -1,6 +1,9 @@
 name: List Workflows
 on:
   workflow_call:
+    outputs:
+      description: List of workflows
+      value: ${{ jobs.gather.outputs.suites }}
 jobs:
   gather:
     runs-on: ubuntu-latest
