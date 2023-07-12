@@ -5,6 +5,7 @@ jobs:
   first:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Get workflow names
         run: ls .github/workflows | sed 's/.yml$//'
     outputs:
