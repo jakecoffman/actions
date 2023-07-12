@@ -7,13 +7,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Get workflow names
-        run: ls .github/workflows | sed 's/.yml$//'
+        id: suites
+        run: |
+          for f in $(ls .github/workflows | sed 's/.yml$//'); do
+            echo "suite=$f" >> $GITHUB_STATE
+          done
     outputs:
-        workflow_names: ${{ toJSON(steps.*.outputs.stdout) }}
+        suites: ${{ toJSON(steps.suites.outputs.suites) }}
   second:
     runs-on: ubuntu-latest
     needs: first
     steps:
       - name: Output workflow names
         run: |
-          echo "Workflows: ${{ fromJSON(needs.first.outputs.workflow_names) }} ${{ needs.first.outputs.workflow_names }}"
+          echo "Workflows: ${{ fromJSON(needs.first.outputs.suites) }}
