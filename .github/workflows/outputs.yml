@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Output workflow names
         run: |
-          echo "Workflows: ${{ needs.first.outputs.suites }}"
+          echo "Workflows: ${{ needs.first.outputs }}"
   third:
     runs-on: ubuntu-latest
     needs: first
