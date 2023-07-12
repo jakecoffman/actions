@@ -1,0 +1,17 @@
+name: Outputs
+on:
+  workflow_dispatch:
+jobs:
+  first:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get workflow names
+        run: ls .github/workflows | sed 's/.yml$//'
+    outputs:
+        workflow_names: ${{ toJSON(steps.*.outputs.stdout) }}
+  second:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output workflow names
+        run: |
+          echo "Workflows: ${{ fromJSON(needs.first.outputs.workflow_names) }}"
