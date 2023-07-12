@@ -9,11 +9,9 @@ jobs:
       - name: Get workflow names
         id: suites
         run: |
-          for f in $(ls .github/workflows | sed 's/.yml$//'); do
-            echo "suite=$f" >> $GITHUB_STATE
-          done
+          echo "suite=$(ls .github/workflows | sed 's/.yml$//' | jq -R | jq -sc)" >> $GITHUB_OUTPUT
     outputs:
-        suites: ${{ toJSON(steps.suites.outputs.suites) }}
+        suites: ${{ steps.suites.outputs.suite }}
   second:
     runs-on: ubuntu-latest
     needs: first
