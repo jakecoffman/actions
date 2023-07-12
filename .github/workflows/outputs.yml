@@ -3,15 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   first:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Get workflow names
-        id: suites
-        run: |
-          echo "suite=$(ls .github/workflows | sed 's/.yml$//' | jq -R | jq -sc)" >> $GITHUB_OUTPUT
-    outputs:
-        suites: ${{ steps.suites.outputs.suite }}
+    uses: jakecoffman/actions/.github/workflows/reusable.yml@main
   second:
     runs-on: ubuntu-latest
     needs: first

@@ -1,0 +1,14 @@
+name: List Workflows
+on:
+  workflow_call:
+jobs:
+  gather:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get workflow names
+        id: suites
+        run: |
+          echo "suite=$(ls .github/workflows | sed 's/.yml$//' | jq -R | jq -sc)" >> $GITHUB_OUTPUT
+    outputs:
+      suites: ${{ steps.suites.outputs.suite }}
