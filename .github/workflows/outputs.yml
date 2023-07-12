@@ -20,4 +20,4 @@ jobs:
     steps:
       - name: Output workflow names
         run: |
-          echo "Workflows: ${{ fromJSON(needs.first.outputs.suites) }}
+          echo "Workflows: ${{ fromJSON(needs.first.outputs.suites) }}"
