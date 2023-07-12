@@ -16,4 +16,4 @@ jobs:
     steps:
       - name: Output workflow names
         run: |
-          echo "Workflows: ${{ fromJSON(needs.first.outputs.workflow_names) }}"
+          echo "Workflows: ${{ fromJSON(needs.first.outputs.workflow_names) }} ${{ needs.first.outputs.workflow_names }}"
