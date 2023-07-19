@@ -1,0 +1,12 @@
+name: Release
+on:
+  release:
+    types: [created, prereleased, published, released]
+jobs:
+  rel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output workflow names
+        run: |
+          echo "event name is:" ${{ github.event_name }}
+          echo "event type is:" ${{ github.event.action }} 
