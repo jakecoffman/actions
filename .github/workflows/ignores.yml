@@ -1,0 +1,74 @@
+# Runs all ecosystems cached and concurrently.
+name: Smoke
+
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    paths-ignore:
+      - docs/**
+      - README.md
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      suites: ${{ steps.suites.outputs.suites }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: dorny/paths-filter@v2
+        if: github.event_name != 'workflow_dispatch'
+        id: changes
+        with:
+          filters: |
+            common:
+              - .github/workflows/**
+            client:
+              - client/**
+            server:
+              - server/**
+
+      - name: Echo the paths changed
+        run: |
+          echo "The following paths were changed: ${{ toJson(steps.changes.outputs.changes) }}"
+          # Write the changes.json file which is an array of paths
+          echo "${{ toJson(steps.changes.outputs.changes) }}" > changes.json
+          cat changes.json
+
+      - name: Read matrix.json and filter out path not in changes.json
+        id: suites
+        run: |
+          jq -c --argjson changes "$(cat changes.json)" '[.[] | select(.path as $p | $changes | index($p))]' matrix.json > filtered.json
+          # Write the filtered.json file which is an array of objects like [{path: "client"}]
+          echo "suites=$(cat filtered.json)" >> $GITHUB_OUTPUT
+          cat filtered.json
+
+  debug:
+    runs-on: ubuntu-latest
+    needs: discover
+    steps:
+      - name: Echo the suites
+        run: |
+          echo "The following suites will be run: ${{ toJson(needs.discover.outputs) }}"
+
+  execute:
+    runs-on: ubuntu-latest
+    needs: discover
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJson(needs.discover.outputs.suites) }}
+    steps:
+      - name: Hello from ${{ matrix.suite }}
+        run: |
+          echo "Hello from ${{ matrix.suite }}"

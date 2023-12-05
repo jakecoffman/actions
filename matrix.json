@@ -1,0 +1,11 @@
+[
+  {
+    "path": "common"
+  },
+  {
+    "path": "client"
+  },
+  {
+    "path": "server"
+  }
+]
