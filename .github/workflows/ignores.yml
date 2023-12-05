@@ -17,7 +17,7 @@ concurrency:
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
-  e2e:
+  discover:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,5 +36,26 @@ jobs:
 
       - name: Echo the paths changed
         run: |
-          echo "The following paths were changed:"
-          echo "${{ toJson(steps.changes.outputs) }}"
+          echo "The following paths were changed: ${{ toJson(steps.changes.outputs.changes) }}"
+          # Write the changes.json file which is an array of paths
+          echo "${{ toJson(steps.changes.outputs.changes) }}" > changes.json
+
+      - name: Read matrix.json and filter by changes.json
+        run: |
+          # Read the matrix.json file which is an array of objects
+          matrix=$(cat matrix.json)
+          # Filter the matrix.json file by the changes.json file
+          filtered=$(jq --argjson changes "$(cat changes.json)" '.[] | select(.paths | any($changes[]; contains(.)))' <<< "$matrix")
+          # Output to GITHUB_OUTPUT
+          echo "filtered=$filtered" >> $GITHUB_OUTPUT
+
+  execute:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJson(needs.discover.outputs.filtered) }}
+    steps:
+      - name: Hello from ${{ matrix.suite }}
+        run: |
+          echo "Hello from ${{ matrix.suite }}"
