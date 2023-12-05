@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: ${{ fromJson(needs.discover.outputs.filtered) }}
+        suite: ${{ fromJson(needs.discover.outputs.suites) }}
     steps:
       - name: Hello from ${{ matrix.suite }}
         run: |
