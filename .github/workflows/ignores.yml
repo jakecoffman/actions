@@ -58,7 +58,7 @@ jobs:
     steps:
       - name: Echo the suites
         run: |
-          echo "The following suites will be run: ${{ toJson(fromJson(needs.discover.outputs)) }}"
+          echo "The following suites will be run: ${{ needs.discover.outputs }}"
 
   execute:
     runs-on: ubuntu-latest
