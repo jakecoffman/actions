@@ -46,6 +46,7 @@ jobs:
           cat changes.json
 
       - name: Read matrix.json and filter out path not in changes.json
+        id: suites
         run: |
           jq -c --argjson changes "$(cat changes.json)" '[.[] | select(.path as $p | $changes | index($p))]' matrix.json > filtered.json
           # Write the filtered.json file which is an array of objects like [{path: "client"}]
