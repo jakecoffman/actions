@@ -52,6 +52,14 @@ jobs:
           echo "suites=$(cat filtered.json)" >> $GITHUB_OUTPUT
           cat filtered.json
 
+  debug:
+    runs-on: ubuntu-latest
+    needs: discover
+    steps:
+      - name: Echo the suites
+        run: |
+          echo "The following suites will be run: ${{ toJson(fromJson(needs.discover.outputs)) }}"
+
   execute:
     runs-on: ubuntu-latest
     needs: discover
