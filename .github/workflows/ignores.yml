@@ -19,6 +19,8 @@ env:
 jobs:
   discover:
     runs-on: ubuntu-latest
+    outputs:
+      suites: ${{ steps.suites.outputs.suites }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,7 +51,7 @@ jobs:
           # Filter the matrix.json file to only include paths that are in changes.json
           filtered=$(echo $matrix | jq --argjson changes "$changes" '.[] | select(.path | IN($changes))')
           # Write the filtered.json file which is an array of objects like [{path: "client"}]
-          echo "filtered=$filtered" >> $GITHUB_OUTPUT
+          echo "suites=$filtered" >> $GITHUB_OUTPUT
 
   execute:
     runs-on: ubuntu-latest
