@@ -44,12 +44,7 @@ jobs:
 
       - name: Read matrix.json and filter out path not in changes.json
         run: |
-          # Read the matrix.json file which is an array of objects like [{path: "client"}]
-          matrix=$(cat matrix.json)
-          # Read the changes.json file which is an array of paths like ["client"]
-          changes=$(cat changes.json)
-          # Filter the matrix.json file to only include paths that are in changes.json
-          filtered=$(echo $matrix | jq --argjson changes "$changes" '.[] | select(.path | IN($changes))')
+          filtered=$(jq --argjson changes "$(cat changes.json)" '.[] | select(.path as $p | $changes | index($p))' matrix.json)
           # Write the filtered.json file which is an array of objects like [{path: "client"}]
           echo "suites=$filtered" >> $GITHUB_OUTPUT
 
