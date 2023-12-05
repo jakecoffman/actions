@@ -37,4 +37,4 @@ jobs:
       - name: Echo the paths changed
         run: |
           echo "The following paths were changed:"
-          echo "${{ steps.changes.outputs.paths }}"
+          echo "${{ steps.changes.outputs }}"
