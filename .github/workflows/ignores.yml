@@ -40,17 +40,20 @@ jobs:
           # Write the changes.json file which is an array of paths
           echo "${{ toJson(steps.changes.outputs.changes) }}" > changes.json
 
-      - name: Read matrix.json and filter by changes.json
+      - name: Read matrix.json and filter out path not in changes.json
         run: |
-          # Read the matrix.json file which is an array of objects
+          # Read the matrix.json file which is an array of objects like [{path: "client"}]
           matrix=$(cat matrix.json)
-          # Filter the matrix.json file by the changes.json file
-          filtered=$(jq --argjson changes "$(cat changes.json)" '.[] | select(.paths | any($changes[]; contains(.)))' <<< "$matrix")
-          # Output to GITHUB_OUTPUT
+          # Read the changes.json file which is an array of paths like ["client"]
+          changes=$(cat changes.json)
+          # Filter the matrix.json file to only include paths that are in changes.json
+          filtered=$(echo $matrix | jq --argjson changes "$changes" '.[] | select(.path | IN($changes))')
+          # Write the filtered.json file which is an array of objects like [{path: "client"}]
           echo "filtered=$filtered" >> $GITHUB_OUTPUT
 
   execute:
     runs-on: ubuntu-latest
+    needs: discover
     strategy:
       fail-fast: false
       matrix:
