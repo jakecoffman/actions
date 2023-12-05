@@ -35,6 +35,8 @@ jobs:
               - .github/workflows/**
             client:
               - client/**
+            server:
+              - server/**
 
       - name: Echo the paths changed
         run: |

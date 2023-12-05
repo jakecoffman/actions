@@ -1,5 +1,8 @@
 [
   {
+    "path": "common"
+  },
+  {
     "path": "client"
   },
   {
