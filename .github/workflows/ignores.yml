@@ -47,6 +47,7 @@ jobs:
           filtered=$(jq --argjson changes "$(cat changes.json)" '.[] | select(.path as $p | $changes | index($p))' matrix.json)
           # Write the filtered.json file which is an array of objects like [{path: "client"}]
           echo "suites=$filtered" >> $GITHUB_OUTPUT
+          echo $filtered
 
   execute:
     runs-on: ubuntu-latest
