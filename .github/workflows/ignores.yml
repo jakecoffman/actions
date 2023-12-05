@@ -19,96 +19,22 @@ env:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        suite:
-          # core - the directory name in dependabot-core for the ecosystem
-          # test - the test name in smoke-tests: tests/smoke-${test}.yaml
-          # ecosystem - the ecosystem name in the Docker image
-          - { core: bundler, test: bundler, ecosystem: bundler }
-          - { core: bundler, test: bundler-group-rules, ecosystem: bundler }
-          - { core: bundler, test: bundler-group-vendoring, ecosystem: bundler }
-          - { core: cargo, test: cargo, ecosystem: cargo }
-          - { core: composer, test: composer, ecosystem: composer }
-          - { core: docker, test: docker, ecosystem: docker }
-          - { core: elm, test: elm, ecosystem: elm }
-          - { core: git_submodules, test: submodules, ecosystem: gitsubmodule }
-          - { core: github_actions, test: actions, ecosystem: github-actions }
-          - { core: go_modules, test: go, ecosystem: gomod }
-          - { core: go_modules, test: go-close-pr, ecosystem: gomod }
-          - { core: go_modules, test: go-group-rules, ecosystem: gomod }
-          - { core: go_modules, test: go-security, ecosystem: gomod }
-          - { core: go_modules, test: go-update-pr, ecosystem: gomod }
-          - { core: gradle, test: gradle, ecosystem: gradle }
-          - { core: gradle, test: gradle-version-catalog, ecosystem: gradle }
-          - { core: hex, test: hex, ecosystem: mix }
-          - { core: maven, test: maven, ecosystem: maven }
-          - { core: npm_and_yarn, test: npm, ecosystem: npm }
-          - { core: npm_and_yarn, test: npm-group-rules, ecosystem: npm }
-          - { core: npm_and_yarn, test: npm-remove-transitive, ecosystem: npm }
-          - { core: npm_and_yarn, test: pnpm, ecosystem: npm }
-          - { core: npm_and_yarn, test: yarn, ecosystem: npm }
-          - { core: npm_and_yarn, test: yarn-berry, ecosystem: npm }
-          - { core: npm_and_yarn, test: yarn-berry-workspaces, ecosystem: npm }
-          - { core: nuget, test: nuget, ecosystem: nuget }
-          - { core: nuget, test: nuget-resolvability, ecosystem: nuget }
-          - { core: pub, test: pub, ecosystem: pub }
-          - { core: python, test: pip, ecosystem: pip }
-          - { core: python, test: pipenv, ecosystem: pip }
-          - { core: python, test: pip-compile, ecosystem: pip }
-          - { core: python, test: poetry, ecosystem: pip }
-          - { core: swift, test: swift, ecosystem: swift }
-          - { core: terraform, test: terraform, ecosystem: terraform }
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          
+
       - uses: dorny/paths-filter@v2
         if: github.event_name != 'workflow_dispatch'
         id: changes
         with:
           filters: |
             common:
-              - .github/workflows/smoke.yml
-              - .dockerignore
-              - Dockerfile.updater-core
-              - 'common/**'
-              - 'updater/**'
-            github_actions:
-              - 'github_actions/**'
-            bundler:
-              - 'bundler/**'
-            cargo:
-              - 'cargo/**'
-            composer:
-              - 'composer/**'
-            docker:
-              - 'docker/**'
-            elm:
-              - 'elm/**'
-            go_modules:
-              - 'go_modules/**'
-            gradle:
-              - 'gradle/**'
-            hex:
-              - 'hex/**'
-            maven:
-              - 'maven/**'
-            npm_and_yarn:
-              - 'npm_and_yarn/**'
-            nuget:
-              - 'nuget/**'
-            python:
-              - 'python/**'
-            pub:
-              - 'pub/**'
-            git_submodules:
-              - 'git_submodules/**'
-            swift:
-              - 'swift/**'
-            terraform:
-              - 'terraform/**'
+              - .github/workflows/**
+            client:
+              - client/**
 
-  
+      - name: Echo the paths changed
+        run: |
+          echo "The following paths were changed:"
+          echo "${{ steps.changes.outputs.paths }}"
