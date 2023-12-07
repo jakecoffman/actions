@@ -9,4 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: echo "SUCCESS"
+        run: |
+          false
+          echo "SUCCESS"
