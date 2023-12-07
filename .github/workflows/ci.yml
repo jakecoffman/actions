@@ -9,4 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: echo "SUCCESS"
+        run: |
+          set +e
+          false
+          if [ $? -ne 0 ]; then
+              exit 1234
+          fi
+          echo "SUCCESS"
