@@ -14,3 +14,5 @@ jobs:
           echo 'Bundler 1 will be deprecated soon!' >> $GITHUB_STEP_SUMMARY
 
     
+      - name: Add annotation
+        run: echo "::error ::Bundler 1 will be deprecated soon!"
