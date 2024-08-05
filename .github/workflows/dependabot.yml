@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Adding markdown
         run: |
-          echo '### ⚠️Warning⚠️' >> $GITHUB_STEP_SUMMARY
+          echo '### ⚠️ Warning ⚠️' >> $GITHUB_STEP_SUMMARY
           echo 'Bundler 1 will be deprecated soon!' >> $GITHUB_STEP_SUMMARY
 
     
