@@ -1,0 +1,16 @@
+name: Dependabot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  summary:
+    name: Adds a summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Adding markdown
+        run: |
+          echo '### ⚠️Warning⚠️' >> $GITHUB_STEP_SUMMARY
+          echo 'Bundler 1 will be deprecated soon!' >> $GITHUB_STEP_SUMMARY
+
+    
