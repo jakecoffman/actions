@@ -10,6 +10,8 @@ jobs:
     name: Blocks
     runs-on: ubuntu-latest
     steps:
+      - name: Clone the repo
+        uses: actions/checkout@v2
       - name: When a PR is raised, request a change with a message
         run: |
           gh pr review ${{ github.event.pull_request.number }} --request-changes --body "Hello this is important"
