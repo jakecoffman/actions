@@ -10,6 +10,8 @@ jobs:
   does:
     name: Does Artifact use Quota
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Output current API quota (initial)
         run: |
