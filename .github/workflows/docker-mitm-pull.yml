@@ -6,6 +6,8 @@ on:
 jobs:
   docker-pull-mitm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Install mitmproxy
         run: |
