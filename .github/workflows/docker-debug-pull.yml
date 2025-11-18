@@ -1,0 +1,157 @@
+name: Docker Debug Pull
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker-pull-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable Docker Debug Mode
+        run: |
+          echo "Stopping Docker service..."
+          sudo systemctl stop docker.socket
+          sudo systemctl stop docker.service
+
+          echo "Configuring Docker daemon for debug mode..."
+          sudo mkdir -p /etc/docker
+          echo '{
+            "debug": true,
+            "log-level": "debug"
+          }' | sudo tee /etc/docker/daemon.json
+
+          echo "Starting Docker service with debug mode..."
+          sudo systemctl start docker.service
+
+          echo "Verifying Docker is running..."
+          sudo systemctl status docker.service --no-pager
+          docker info
+
+      - name: Install tcpdump
+        run: |
+          echo "Installing tcpdump..."
+          sudo apt-get update
+          sudo apt-get install -y tcpdump
+
+      - name: Capture Network Traffic and Pull Image
+        run: |
+          echo "Starting packet capture..."
+          # Capture HTTP/HTTPS traffic to ghcr.io
+          sudo tcpdump -i any -s 0 -A 'tcp port 443 or tcp port 80' \
+            -w /tmp/docker-traffic.pcap > /tmp/tcpdump.log 2>&1 &
+          TCPDUMP_PID=$!
+          echo "tcpdump PID: $TCPDUMP_PID"
+          echo $TCPDUMP_PID > /tmp/tcpdump.pid
+
+          # Also capture Docker daemon logs
+          sudo journalctl -u docker.service -f > /tmp/docker-debug.log 2>&1 &
+          JOURNAL_PID=$!
+          echo "journalctl PID: $JOURNAL_PID"
+          echo $JOURNAL_PID > /tmp/journal.pid
+
+          # Give time for capture to start
+          sleep 3
+
+          echo "Pulling Docker image..."
+          docker pull \
+            ghcr.io/dependabot/dependabot-updater-npm:641ac3aeae97764683fb989a25dc3fa9340b7e24
+
+          echo "Waiting for logs to flush..."
+          sleep 5
+
+          # Stop captures
+          if [ -f /tmp/tcpdump.pid ]; then
+            sudo kill $(cat /tmp/tcpdump.pid) || true
+          fi
+          if [ -f /tmp/journal.pid ]; then
+            sudo kill $(cat /tmp/journal.pid) || true
+          fi
+
+          echo "Docker pull completed"
+
+      - name: Analyze HTTP Requests from Docker Logs
+        run: |
+          echo "================================================"
+          echo "Analyzing Docker daemon debug logs..."
+          echo "================================================"
+
+          if [ -f /tmp/docker-debug.log ]; then
+            # Try different patterns for HTTP requests in Docker logs
+            echo "Searching for HTTP request patterns..."
+
+            # Pattern 1: Look for HTTP method lines
+            HEAD_COUNT=$(grep -iE "(HEAD|head).*(/v2/|registry)" \
+              /tmp/docker-debug.log | wc -l || echo "0")
+            GET_COUNT=$(grep -iE "(GET|get).*(/v2/|registry)" \
+              /tmp/docker-debug.log | wc -l || echo "0")
+
+            echo "From Docker debug logs:"
+            echo "  HEAD requests: $HEAD_COUNT"
+            echo "  GET requests:  $GET_COUNT"
+
+            echo ""
+            echo "Sample log entries:"
+            grep -iE "(HEAD|GET).*(/v2/|registry)" \
+              /tmp/docker-debug.log | head -10 || \
+              echo "No HTTP requests found in Docker logs"
+          fi
+
+      - name: Analyze Network Traffic
+        run: |
+          echo ""
+          echo "================================================"
+          echo "Analyzing network packet capture..."
+          echo "================================================"
+
+          if [ -f /tmp/docker-traffic.pcap ]; then
+            echo "Converting pcap to text for analysis..."
+            sudo tcpdump -r /tmp/docker-traffic.pcap -A \
+              > /tmp/traffic-dump.txt 2>&1 || true
+
+            # Count HTTP requests in captured traffic
+            # Note: HTTPS traffic will be encrypted, so we look for patterns
+            if [ -f /tmp/traffic-dump.txt ]; then
+              HEAD_COUNT=$(grep -c "HEAD /v2/" /tmp/traffic-dump.txt \
+                || echo "0")
+              GET_COUNT=$(grep -c "GET /v2/" /tmp/traffic-dump.txt \
+                || echo "0")
+
+              echo "From network capture:"
+              echo "  HEAD requests: $HEAD_COUNT"
+              echo "  GET requests:  $GET_COUNT"
+              echo ""
+              echo "Note: HTTPS traffic is encrypted."
+              echo "Actual HTTP methods may not be visible."
+            fi
+          fi
+
+      - name: Final Summary
+        if: always()
+        run: |
+          echo ""
+          echo "================================================"
+          echo "FINAL SUMMARY"
+          echo "================================================"
+          echo ""
+          echo "This workflow attempted to capture HTTP requests"
+          echo "during docker pull using:"
+          echo "  1. Docker daemon debug logs"
+          echo "  2. Network packet capture (tcpdump)"
+          echo ""
+          echo "Since ghcr.io uses HTTPS, the actual HTTP methods"
+          echo "may not be visible in plain text captures."
+          echo ""
+          echo "Check the uploaded artifacts for detailed logs."
+          echo "================================================"
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-debug-analysis
+          path: |
+            /tmp/docker-debug.log
+            /tmp/tcpdump.log
+            /tmp/docker-traffic.pcap
+            /tmp/traffic-dump.txt
+          retention-days: 7
