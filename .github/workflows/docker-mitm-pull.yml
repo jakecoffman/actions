@@ -1,0 +1,195 @@
+name: Docker MITM Proxy Pull
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker-pull-mitm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Install mitmproxy
+        run: |
+          echo "Installing mitmproxy..."
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install mitmproxy
+          echo "mitmproxy installed at: $(which mitmdump)"
+
+      - name: Setup mitmproxy certificates
+        run: |
+          echo "Starting mitmproxy temporarily to generate certificates..."
+          timeout 5 mitmdump --listen-port 8080 || true
+          sleep 2
+
+          echo "Installing mitmproxy CA certificate..."
+          MITM_CERT="$HOME/.mitmproxy/mitmproxy-ca-cert.pem"
+          if [ -f "$MITM_CERT" ]; then
+            sudo cp "$MITM_CERT" \
+              /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
+            sudo update-ca-certificates
+            echo "mitmproxy CA certificate installed"
+          else
+            echo "Warning: mitmproxy cert not found at $MITM_CERT"
+            ls -la "$HOME/.mitmproxy/" || echo "Directory not found"
+          fi
+
+      - name: Start mitmproxy with logging script
+        run: |
+          echo "Creating mitmproxy logging script..."
+          cat > /tmp/mitm_script.py << 'EOF'
+          from mitmproxy import http
+          import sys
+
+          def request(flow: http.HTTPFlow) -> None:
+              method = flow.request.method
+              url = flow.request.pretty_url
+              path = flow.request.path
+
+              # Log all requests
+              log_msg = f"[MITM-REQUEST] {method} {path} | Full: {url}"
+              print(log_msg, file=sys.stderr, flush=True)
+
+              # Also write to a separate file for easier parsing
+              with open('/tmp/mitm_requests.log', 'a') as f:
+                  f.write(f"{method} {path}\n")
+          EOF
+
+          echo "Starting mitmproxy in background..."
+          mitmdump -s /tmp/mitm_script.py --listen-port 8080 --ssl-insecure \
+            > /tmp/mitm-stdout.log 2> /tmp/mitm-stderr.log &
+          MITM_PID=$!
+          echo "mitmproxy PID: $MITM_PID"
+          echo $MITM_PID > /tmp/mitm.pid
+
+          # Wait for mitmproxy to start
+          sleep 5
+
+          # Verify mitmproxy is running
+          if ps -p $MITM_PID > /dev/null; then
+            echo "mitmproxy is running successfully"
+            # Test proxy connectivity
+            curl -x http://127.0.0.1:8080 http://example.com \
+              > /dev/null 2>&1 && echo "Proxy is responding" || \
+              echo "Proxy test failed"
+          else
+            echo "ERROR: Failed to start mitmproxy"
+            cat /tmp/mitm-stdout.log /tmp/mitm-stderr.log
+            exit 1
+          fi
+
+      - name: Configure Docker to use proxy
+        run: |
+          echo "Configuring Docker to use mitmproxy..."
+          sudo mkdir -p /etc/systemd/system/docker.service.d
+
+          cat << 'EOF' | sudo tee \
+            /etc/systemd/system/docker.service.d/http-proxy.conf
+          [Service]
+          Environment="HTTP_PROXY=http://127.0.0.1:8080"
+          Environment="HTTPS_PROXY=http://127.0.0.1:8080"
+          Environment="NO_PROXY=localhost,127.0.0.1"
+          EOF
+
+          echo "Restarting Docker with proxy configuration..."
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker.service
+
+          # Wait for Docker to be ready
+          sleep 3
+
+          echo "Verifying Docker is running..."
+          sudo systemctl status docker.service --no-pager
+          docker info
+
+      - name: Pull Docker Image via Proxy
+        run: |
+          echo "Pulling Docker image through mitmproxy..."
+          echo "This will capture all HTTP/HTTPS requests..."
+
+          # Pull the image
+          docker pull \
+            ghcr.io/dependabot/dependabot-updater-npm:641ac3aeae97764683fb989a25dc3fa9340b7e24
+
+          echo "Docker pull completed!"
+          echo "Waiting for mitmproxy to flush logs..."
+          sleep 3
+
+      - name: Analyze Captured Requests
+        if: always()
+        run: |
+          echo "================================================"
+          echo "Stopping mitmproxy..."
+          echo "================================================"
+
+          if [ -f /tmp/mitm.pid ]; then
+            MITM_PID=$(cat /tmp/mitm.pid)
+            kill $MITM_PID 2>/dev/null || true
+            sleep 2
+          fi
+
+          echo ""
+          echo "================================================"
+          echo "ANALYZING CAPTURED HTTP REQUESTS"
+          echo "================================================"
+
+          if [ -f /tmp/mitm_requests.log ]; then
+            echo ""
+            echo "All captured requests:"
+            cat /tmp/mitm_requests.log
+
+            echo ""
+            echo "================================================"
+
+            # Count HEAD requests
+            HEAD_COUNT=$(grep -c "^HEAD " /tmp/mitm_requests.log \
+              || echo "0")
+
+            # Count GET requests
+            GET_COUNT=$(grep -c "^GET " /tmp/mitm_requests.log \
+              || echo "0")
+
+            # Count requests to /v2/ endpoints (Docker Registry API)
+            V2_HEAD_COUNT=$(grep "^HEAD " /tmp/mitm_requests.log | \
+              grep -c "/v2/" || echo "0")
+            V2_GET_COUNT=$(grep "^GET " /tmp/mitm_requests.log | \
+              grep -c "/v2/" || echo "0")
+
+            echo "SUMMARY OF ALL REQUESTS:"
+            echo "  Total HEAD requests: $HEAD_COUNT"
+            echo "  Total GET requests:  $GET_COUNT"
+            echo ""
+            echo "SUMMARY OF DOCKER REGISTRY (/v2/) REQUESTS:"
+            echo "  HEAD /v2/ requests: $V2_HEAD_COUNT"
+            echo "  GET /v2/ requests:  $V2_GET_COUNT"
+            echo "  Total /v2/ requests: $((V2_HEAD_COUNT + V2_GET_COUNT))"
+            echo "================================================"
+
+            echo ""
+            echo "Sample HEAD requests to /v2/:"
+            grep "^HEAD " /tmp/mitm_requests.log | grep "/v2/" | head -10 \
+              || echo "No HEAD requests to /v2/ found"
+
+            echo ""
+            echo "Sample GET requests to /v2/:"
+            grep "^GET " /tmp/mitm_requests.log | grep "/v2/" | head -10 \
+              || echo "No GET requests to /v2/ found"
+
+          else
+            echo "ERROR: No request log file found!"
+            echo "Checking mitmproxy stderr log:"
+            cat /tmp/mitm-stderr.log 2>/dev/null || \
+              echo "No stderr log available"
+          fi
+
+      - name: Upload Logs and Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mitm-proxy-analysis
+          path: |
+            /tmp/mitm_requests.log
+            /tmp/mitm-stdout.log
+            /tmp/mitm-stderr.log
+          retention-days: 7
